@@ -65,3 +65,6 @@ target/
 
 # tools
 .ropeproject
+
+# vscode
+.vscode

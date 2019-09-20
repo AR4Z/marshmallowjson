@@ -60,31 +60,37 @@ class Definition:
         for field, schema in definition.items():
             kind = schema.get('kind')
             required = schema.get('required', False)
+            allow_none = schema.get('allow_none', False)
             if kind == 'list':
                 items = schema.get('items')
                 if items in self.fields:
                     marshmallow_fields[field] = fields.List(
                         self.fields[items],
                         required=required,
+                        allow_none=allow_none
                     )
                     marshmallow_fields_dict[field] = {
                         "type": kind,
-                        "required": required
+                        "required": required,
+                        "allow_none":allow_none
                     }
                 else:
                     marshmallow_fields[field] = fields.Nested(
                         self.schemas[items],
                         required=required,
+                        allow_none=allow_none
                     )
                     marshmallow_fields_dict[field] = {
                         "fields": self.dict_schemas[items],
-                        "required": required
+                        "required": required,
+                        "allow_none":allow_none
                     }
                 continue
             if kind in self.fields:
                 marshmallow_fields_dict[field] = {
                     "type": kind,
-                    "required": required
+                    "required": required,
+                    "allow_none": allow_none
                 }
                 validate = schema.get('validate')
                 if kind in DEFAULT_FIELDS and validate:
@@ -98,6 +104,7 @@ class Definition:
                         pass
                     marshmallow_fields[field] = self.fields[kind](
                         required=required,
+                        allow_none=allow_none,
                         validate=validator(**validator_params)
                     )
                     marshmallow_fields_dict[field].update({
@@ -111,16 +118,19 @@ class Definition:
                     # TODO: raise error -"field can not supports validation"
                     pass
                 marshmallow_fields[field] = self.fields[kind](
-                    required=required
+                    required=required,
+                    allow_none=allow_none
                 )
             else:
                 marshmallow_fields[field] = fields.Nested(
                     self.schemas[kind],
-                    required=required
+                    required=required,
+                    allow_none=allow_none
                 )
                 marshmallow_fields_dict[field] = {
                     "fields": self.dict_schemas[kind],
-                    "required": required
+                    "required": required,
+                    "allow_none": allow_none
                 }
         self.dict_schemas[name] = marshmallow_fields_dict
         self.schemas[name] = type(name, (Schema,), marshmallow_fields)
